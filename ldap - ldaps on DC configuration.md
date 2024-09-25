@@ -1,0 +1,1 @@
+/Users/kbrown/Sync.KB/IT/Windoze/AD LDS LDAP/ldaps on DC configuration.md
