@@ -151,7 +151,7 @@ I've read several methods to do this. Some use the kerberos template and others 
 	- Leave all the other Properties tabs unchanged, the Domain Controller source template was already setup correctly for everything else
 	- click Apply then OK
 
-Notice that the template schema version has incremented, that we have a new and previously unused version number, and that server and client auth appear as inteded purposes
+Notice that the template schema version has incremented, that we have a new and previously unused version number, and that server and client auth appear as intended purposes
 ![new template](ldaps%20on%20DC%20configuration-images/new_template.jpg)
 
 Now do yourself a favor. Open the new template and double check everything. If you miss clicking apply on any of the tabs then the settings won't be saved. The private key must be exportable.
