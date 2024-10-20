@@ -1,9 +1,7 @@
-# [import root cert from Windows CA and install to Linux Unix MacOS Windows Cygwin guests.md](import%20root%20cert%20from%20Windows%20CA%20and%20install%20to%20Linux%20Unix%20MacOS%20Windows%20Cygwin%20guests.md)
+# [install root certificate to Linux Unix MacOS Windows Cygwin guests.md](install%20root%20certificate%20to%20Linux%20Unix%20MacOS%20Windows%20Cygwin%20guests.md)
 (last update 2024-10-20)
 
 **Notes:**
-
-The export instructions work for Windows 2019 and Windows 2022.
 
 Linux requires a PEM formatted certificate that is named with a .crt file extension. Export in Base-64 format which Windows will name with a .cer extension. It's all the same. If you see `-----BEGIN CERTIFICATE-----` at the top of the cert then it is in PEM format. Just rename it.
 
@@ -15,41 +13,13 @@ Finally, we are installing root certificates for the OS to use. Most web browser
 
 ---
 
-First we need to get the CA root cert from our Windows CA.
-### Export Root Cert from Windows CA - Two Methods
-
-We'll start with the easy way. If you can't launch the Certificate Authority tool then you'll need to use the mmc method.
-#### CA method
-- log onto a CA server
-- Server Manager -> Tools -> Certification Authority
-- right click your domain CA -> Properties
-- General tab -> choose your cert -> click View Cerificate
-- Details tab -> Copy to file...
-- choose Base-64 encoded X.509 (.CER) format -> name it whatever you like but I suggest  
-`\<domain name>-CA.pem`. Note that it is .crt, but if you miss that you can just rename it later.
-
-If you can't run the Certification Authority tool or you just like using mmc do this
-#### mmc method
-- on a CA server run mmc (you may need to launch it from a PowerShell or cmd command line)
-- Add/Remove Snap-ins -> Certificates -> Computer Account -> Local Account -> OK
-- Certificates -> Trusted Root Certification Authorities -> Certificates
-- find the root cert
-	- it will be in the name format \<domain name>-CA
-	- not in the name format CA-\<domain name>
-	- check the details, the correct cert will have been created (probably) with the Certificate Template Name: CA
-- right click -> All Tasks -> Export... -> the export wizard launches
-- choose Base-64 encoded X.509 (.CER) format -> name it whatever you like but I suggest  
-`\<domain name>-CA.pem`. Note that it is .crt, but if you miss that you can just rename it later.
-
-You may use the Web Cert portal if it's available to you too. Whatever you like. The important point is that you end up with a root certifcate in PEM/Base64 format.
-
 ### Import and install the root cert - see instructions for your OS listed below
 Once you have your cert you should test that it's formatted properly and has valid data. This command works on all OSes except Windows. Do this:   
 `openssl x509 -noout -text -in your_cert_name.pem`
 
 We'll start with MacOS, work through a few flavors (distros) of Linux, then a few flavors of Unix, and end with Windows. Mac is up first because it is Unix, but it works in its own Apple-ish way.
 
-### MacOS (OSX) 12, 13, and 14 (probably 15 too)
+#### MacOS (OSX) 12, 13, and 14 (probably 15 too)
 You will need sudo priveleges. That is the default for the first user account you create. If you can change system settings that require your password then you have sudo priveleges. These instructions are really intended for professional systems people. Adding a root cert has huge security implications, so be careful.
 
 First we'll look at the full command and explain the options. Then we'll cover the actual steps to implement this change.
@@ -157,6 +127,8 @@ Read the file /etc/pki/ca-trust/source/README for pretty much these exact instru
 `update-ca-trust`
 
 update-ca-trust in Cygwin does not return any info to the screen when adding or removing a root cert and it takes a relatively long time to complete, but it is working.
+
+---
 
 ref:  
 [Solaris 11 root cert installation](https://docs.oracle.com/cd/E53394_01/html/E54783/kmf-cacerts.html#OSCMEkmf-taskcert)
