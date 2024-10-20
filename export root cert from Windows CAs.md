@@ -5,8 +5,6 @@
 
 The export instructions work for Windows 2019 and Windows 2022.
 
-One thing I'm not touching on here is certificate chains. Many public certificate services have intermediate certs, and that means you need a complete chain. The complete chain needs to have all the intermediate and main CA certs in the right order and saved to your root cert file. There are many ways to combine chains and convert formats but that's outside our simple scope here. The Linux, Unix, Mac, etc. cert instructions below assume you already have a valid chain if you need that.
-
 ---
 
 First we need to get the CA root cert from our Windows CA.
