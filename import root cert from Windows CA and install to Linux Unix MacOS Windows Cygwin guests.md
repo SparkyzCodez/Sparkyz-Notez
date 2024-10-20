@@ -1,4 +1,5 @@
-# [import root cert from Windows CA and install to Linux Unix MacOS Windows guests.md](import%20root%20cert%20from%20Windows%20CA%20and%20install%20to%20Linux%20Unix%20Mac%20Windows%20guests.md)
+# [import root cert from Windows CA and install to Linux Unix MacOS Windows Cygwin guests.md](import%20root%20cert%20from%20Windows%20CA%20and%20install%20to%20Linux%20Unix%20MacOS%20Windows%20Cygwin%20guests.md)
+(last update 2024-10-20)
 
 **Notes:**
 
@@ -147,6 +148,15 @@ Here's the command line method:
 
 Verify your cert got to the right place like this:  
 `Get-ChildItem Cert:\LocalMachine\Root\`
+
+#### Cygwin (Yes Cygwin, exactly the same as Red Hat)
+Read the file /etc/pki/ca-trust/source/README for pretty much these exact instructions.
+
+- copy the cert file (text format, Base-64, **.pem** extension) to /etc/pki/ca-trust/source/anchors
+- run the command  
+`update-ca-trust`
+
+update-ca-trust in Cygwin does not return any info to the screen when adding or removing a root cert and it takes a relatively long time to complete, but it is working.
 
 ref:  
 [Solaris 11 root cert installation](https://docs.oracle.com/cd/E53394_01/html/E54783/kmf-cacerts.html#OSCMEkmf-taskcert)
