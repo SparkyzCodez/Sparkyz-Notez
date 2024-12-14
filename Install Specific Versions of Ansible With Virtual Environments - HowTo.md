@@ -76,7 +76,7 @@ And yes, I already had mine installed. This at least shows that all the package 
 Now we just run the command to install pyenv. They make this really easy. We use curl to download their installer script and pipe it to BASH. If you want to be a bit nerdy then you can download the script and look it over. You'll find that it just pulls another script and runs that. Have fun, but for now we'll just get the job down.  
 `curl https://pyenv.run | bash`
 
-![pyenv installation](InstallSpecificVersionsOfAnsibleWithVirtualEnvironments-InstallSpecificVersionsOfAnsibleWithVirtualEnvironments-images/pyenv-install.jpg)
+![pyenv installation](InstallSpecificVersionsOfAnsibleWithVirtualEnvironments-images/pyenv-install.jpg)
 
 That's pretty easy right? Now we have to deal with this warning.  
 ![pyenv shell warning](InstallSpecificVersionsOfAnsibleWithVirtualEnvironments-images/pyenv-shell-tweak.jpg)
