@@ -73,7 +73,7 @@ Install development tools so that the Python installs will build correctly. **Th
 
 And yes, I already had mine installed. This at least shows that all the package names are correct for RH9. It's probably right RH8 and RH7.
 
-Now we just run the command to install pyenv. They make this really easy. We use curl to download their installer script and pipe it to BASH. If you want to be a bit nerdy then you can download the script and look it over. You'll find that it just pulls another script and runs that. Have fun, but for now we'll just get the job down.  
+Now we just run the command to install pyenv. They make this really easy. We use curl to download their installer script and pipe it to BASH. If you want to be a bit nerdy then you can download the script and look it over. You'll find that it just pulls another script and runs that. Have fun, but for now we'll just get the job done.  
 `curl https://pyenv.run | bash`
 
 ![pyenv installation](InstallSpecificVersionsOfAnsibleWithVirtualEnvironments-images/pyenv-install.jpg)
