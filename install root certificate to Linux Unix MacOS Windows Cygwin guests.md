@@ -17,7 +17,7 @@ Finally, we are installing root certificates for the OS to use. Most web browser
 Once you have your cert you should test that it's formatted properly and has valid data. This command works on all OSes except Windows. Do this:   
 `openssl x509 -noout -text -in your_cert_name.pem`
 
-We'll start with MacOS, work through a few flavors (distros) of Linux, then a few flavors of Unix, and end with Windows. Mac is up first because it is Unix, but it works in its own Apple-ish way.
+We'll start with MacOS, work through a few flavors (distros) of Linux, then a few flavors of Unix, Windows, and end with Cygwin (because we can). Mac is up first because it is Unix, but it works in its own Apple-ish way.
 
 #### MacOS (OSX) 12, 13, and 14 (probably 15 too)
 You will need sudo priveleges. That is the default for the first user account you create. If you can change system settings that require your password then you have sudo priveleges. These instructions are really intended for professional systems people. Adding a root cert has huge security implications, so be careful.
