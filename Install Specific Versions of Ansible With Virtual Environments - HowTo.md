@@ -81,7 +81,7 @@ Now we just run the command to install pyenv. They make this really easy. We use
 That's pretty easy right? Now we have to deal with this warning.  
 ![pyenv shell warning](InstallSpecificVersionsOfAnsibleWithVirtualEnvironments-images/pyenv-shell-tweak.jpg)
 
-Copy and paste the text from that warning into the appropriate file. For most of us we added it to the end of our .bash_profile. Mine looks like this:  
+Copy and paste the text from that warning into the appropriate file. For most of us we add it to the end of our .bash_profile. Mine looks like this:  
 ![.bash_profile after tweak](InstallSpecificVersionsOfAnsibleWithVirtualEnvironments-images/bash-profile.jpg)
 
 Here's our first important gotcha. Don't just source or exec the shell. Close it. If you're running in a GUI just log out completely. If the tweaks to your .bash_profile aren't working then nothing else from here on will work correctly. Yes, this got me once. Now I just reboot.
