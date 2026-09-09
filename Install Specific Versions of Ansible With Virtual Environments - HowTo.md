@@ -67,7 +67,7 @@ Now we work:
 Open a terminal on your control node and login.
 
 Install development tools so that the Python installs will build correctly. **This step requires sudo or root privileges.** It's the last time we'll need root/sudo.  
-`sudo dnf install gcc zlib-devel bzip2 bzip2-devel readline-devel sqlite sqlite-devel openssl-devel xz xz-devel libffi-devel`
+`sudo dnf install gcc zlib-devel bzip2 bzip2-devel readline-devel sqlite sqlite-devel openssl-devel xz xz-devel libffi-devel git`
 
 ![install build toosl](InstallSpecificVersionsOfAnsibleWithVirtualEnvironments-images/install-build-tools.jpg)
 
@@ -84,7 +84,7 @@ That's pretty easy right? Now we have to deal with this warning.
 Copy and paste the text from that warning into the appropriate file. For most of us we add it to the end of our .bash_profile. Mine looks like this:  
 ![.bash_profile after tweak](InstallSpecificVersionsOfAnsibleWithVirtualEnvironments-images/bash-profile.jpg)
 
-Here's our first important gotcha. Don't just source or exec the shell. Close it. If you're running in a GUI just log out completely. If the tweaks to your .bash_profile aren't working then nothing else from here on will work correctly. Yes, this got me once. Now I just reboot.
+Here's our first important gotcha. Don't just source or exec the shell. Close it the shell or session completely, then restart it. If you're running in a GUI just log out completely. If the tweaks to your .bash_profile aren't working then nothing else from here on will work correctly. Yes, this got me once.
 
 Did you get your shell restarted? Type `env` and make sure the pyenv directories are first in your path. Mine looks like this: `PATH=/home/anscontrol/.pyenv/plugins/pyenv-virtualenv/shims:/home/anscontrol/.pyenv/shims:/home/anscontrol/.pyenv/bin:/home/anscontrol/.local/bin:/home/anscontrol/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin`
 
@@ -210,7 +210,7 @@ This is what it looks like when I ping all my Unix and Linux hosts in my lab:
 And take note of the one host that's warning us about using a deprecated version of Python 2. That's why we did this, so that we can access and automate my friends legacy RH6 servers. My friend is really bummed out though. He found a Red Hat 5 server running in production. That one is so old that it's just out of reach. But seriously, who still has RH5 in production? (Supposedly Ansible 2.3 with Python 2.6 would work. But, seriously?)
 
 #### Summary For The Impatient (Like Me)
-- `sudo dnf install gcc zlib-devel bzip2 bzip2-devel readline-devel sqlite sqlite-devel openssl-devel xz xz-devel libffi-devel`
+- `sudo dnf install gcc zlib-devel bzip2 bzip2-devel readline-devel sqlite sqlite-devel openssl-devel xz xz-devel libffi-devel git`
 - `curl https://pyenv.run | bash`
 - Paste the shell tweaks to the end of your .bash_profile file then restart your shell. Rebooting guarantees success.
 - `pyenv install 3.10.16`
