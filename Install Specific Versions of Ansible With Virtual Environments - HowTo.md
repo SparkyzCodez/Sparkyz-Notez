@@ -67,7 +67,7 @@ Now we work:
 Open a terminal on your control node and login.
 
 Install development tools so that the Python installs will build correctly. **This step requires sudo or root privileges.** It's the last time we'll need root/sudo.  
-`sudo dnf install gcc zlib-devel bzip2 bzip2-devel readline-devel sqlite sqlite-devel openssl-devel xz xz-devel libffi-devel git`
+`sudo dnf install gcc zlib-devel bzip2 bzip2-devel readline-devel sqlite sqlite-devel openssl-devel xz xz-devel libffi-devel patch git`
 
 ![install build toosl](InstallSpecificVersionsOfAnsibleWithVirtualEnvironments-images/install-build-tools.jpg)
 
@@ -210,7 +210,7 @@ This is what it looks like when I ping all my Unix and Linux hosts in my lab:
 And take note of the one host that's warning us about using a deprecated version of Python 2. That's why we did this, so that we can access and automate my friends legacy RH6 servers. My friend is really bummed out though. He found a Red Hat 5 server running in production. That one is so old that it's just out of reach. But seriously, who still has RH5 in production? (Supposedly Ansible 2.3 with Python 2.6 would work. But, seriously?)
 
 #### Summary For The Impatient (Like Me)
-- `sudo dnf install gcc zlib-devel bzip2 bzip2-devel readline-devel sqlite sqlite-devel openssl-devel xz xz-devel libffi-devel git`
+- `sudo dnf install gcc zlib-devel bzip2 bzip2-devel readline-devel sqlite sqlite-devel openssl-devel xz xz-devel libffi-devel patch git`
 - `curl https://pyenv.run | bash`
 - Paste the shell tweaks to the end of your .bash_profile file then restart your shell. Don't just source or . the .bashrc.
 - `pyenv install 3.10.16`
