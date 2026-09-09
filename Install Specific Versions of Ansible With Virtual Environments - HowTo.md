@@ -217,7 +217,7 @@ And take note of the one host that's warning us about using a deprecated version
 - `pyenv global 3.10.16`
 - `python -m venv ans2.12`
 - `source ans2.12/bin/activate`
-- `pip install ansible==5.10.0` (wrong syntax? see the pip reference link just below)
+- `pip install ansible==5.10.0` (wrong syntax? pip has changed its syntax several times over the years. See the pip reference link just below.)
 
 And that's it. I hope you found this useful.
 
