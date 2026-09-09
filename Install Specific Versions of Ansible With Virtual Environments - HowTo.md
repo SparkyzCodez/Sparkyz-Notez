@@ -212,7 +212,7 @@ And take note of the one host that's warning us about using a deprecated version
 #### Summary For The Impatient (Like Me)
 - `sudo dnf install gcc zlib-devel bzip2 bzip2-devel readline-devel sqlite sqlite-devel openssl-devel xz xz-devel libffi-devel git`
 - `curl https://pyenv.run | bash`
-- Paste the shell tweaks to the end of your .bash_profile file then restart your shell. Rebooting guarantees success.
+- Paste the shell tweaks to the end of your .bash_profile file then restart your shell. Don't just source or . the .bashrc.
 - `pyenv install 3.10.16`
 - `pyenv global 3.10.16`
 - `python -m venv ans2.12`
