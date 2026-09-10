@@ -1,82 +1,87 @@
 **[Install Specific Versions of Ansible With Virtual Environments - HowTo.md](Install%20Specific%20Versions%20of%20Ansible%20With%20Virtual%20Environments%20-%20HowTo.md)**
 
-last edit: 20260908
+last edit: 20260909
 
 #### Things we are covering
 - setup an Ansible environment that can work with legacy systems or version specific testing
 - determine correct Python / Ansible version pairings
-- install and configure pyenv
+- install and configure pyenv - with details for Red Hat/Fedora, Ubuntu/Debian, SUSE, and FreeBSD
 - install and activate a Python virtual environment for Ansible use
 - use pip to install a specific version of Ansible to your virtual environment
 
-There is a list of all the commands at the end of this document. If you just need a refresher just scroll down and zoom through the steps. Look for *Summary For The Impatient (Like Me)*. If you've never done this before then I recommend you read through the entire document just once. Also, references are at the bottom of this doc.
+There is a list of all the commands at the end of this document. If you just need a refresher head to the bottom of this document and look for *Summary For The Impatient (Like Me)*. If you've never done this before then I recommend you read through the entire document just once. There are also additional references at the bottom of this doc.
 
 ## The Goal
-The goal is to install one or more different versions of Ansible and to be able to switch between them.
+The goal is to install one or more different combinations of Python 3 and Ansible, and to be able to switch between them easily.
 
 ## Some Reasons You My Need To Do This
-If you've been using the default installation that installs from your distro's repositories then you're probably using /etc/ansible as your base of operations. Just a few tweaks of users and permissions you're off and running, right?. There's nothing inherently wrong with that, and if it's working for you then there may be no reason to go the more complicated route below. It just works...until it doesn't.
+If you've been using the default installation that installs from your distro's repositories then you're probably using /etc/ansible as your base of operations. Just a few tweaks of users and permissions you're off and running, right?. There's nothing inherently wrong with that, and if it's working for you then there may be no reason to go the more complicated route below. It just works...until it doesn't. Maybe one day you update your system from the base repositories and Ansible just stops working with your old servers.
 
-Let's say your friend started a new job and they found that the company is using Red Hat 6 servers several years after Red Hat discontinued and disavowed that release. And at this new job your friend finds that they are using the basic system installed version of Ansible that just can't talk to the old RH6 systems. The last version of Ansible Core to work with RH6 is 2.12. What could my friend do? The problem with RH6 is that it doesn't have Python 3 available in its repositories and the last version of Python 2 is 2.6.6. The last version of Ansible to work with that version of Python is Ansible Core 2.12.
+Or what if you need to manage Red Hat 6 (RHEL 6, RH6) servers several years after Red Hat discontinued and disavowed that release. Using the basic system installed version of Ansible just can't talk to the old RH6 systems. The last version of Ansible Core to work with RH6 is 2.12. The problem with RH6 is that it doesn't have Python 3 available in its repositories and the last version of Python 2 is 2.6.6. The last version of Ansible to work with that version of Python is Ansible Core 2.12. What can you do?
 
 *\(That's twice that I specifically mentioned **Ansible Core**. Versions and their numbers are kind of a mess in the Ansible world. We'll get that all sorted a bit later.\)*
 
-But your controller node, where your Ansible is installed and where all your playbooks are located, is a nice, up to date Red Hat 9 system with all the latest Python and Ansible updates applied. Nice job keeping that up to date! As you might guess, we are well beyond supporting servers with Python 2.6.6 . There's zero chance that we can easily downgrade our controller to Ansible 2.12.
+Let's say your controller node, where your Ansible is installed and where all your playbooks are located, is a nice, up to date Red Hat 9 system with all the latest Python and Ansible updates applied. Nice job keeping that up to date! As you might guess, that setup is too new for supporting servers with Python 2.6.6 . There's zero chance that you can easily downgrade our controller to Ansible 2.12.
 
-So, back to RH6. Yes, you can install later versions of Python 2 and even 3, but you'll have to build them and resolve all those library mismatches. The mismatches are going to be a real challenge and it looked too painful for my friend. The other Linux admin's were very nervous about letting my friend loose with gcc, make, and all rest of it. I don't blame them. These are production machines that have to keep limping along until their years-overdo upgrade migrations are complete.
+It is possible to install Python 3 to RH6, but it's a challenging process that can't be carried out from default repositories. You'll have to build them from source and resolve all those library mismatches.
 
-I suggested a different solution. That solution is the use Python virtual environments to install any version of Ansible that will build on the controller node. Ansible is a Python app so building it is pretty much only dependent on having a compatible version of Python 3 installed.
+You don't need to do that. This document describes how to setup a Python virtual environment, then load it with older combinations of Python and Ansible that can still talk to RH6.
 
 Red Hat 6 isn't the only reason to do this. Using the method outlined below you can install several different combinations to test with whatever scenarios you may run into. Perhaps you have several different divisions of the company and each has their own systems with their own inventories and needs. Maybe your doing a proof of concept for managing your VMware data centers. Do you have developers in your company? Well you'll probably need another setup just for them.
 
-There is a path forward, but only if we can get the matching version of Python 3 installed for our chosen version of Ansible. So what do we do?
+We are going to cover installing pyenv for Python virtual environment support, matching our target version of Ansible to the correct version of Python, then getting them all to work together. It's very important to use the right combination of compatible Python and Ansible versions together. We will cover exactly how to do that based on Ansible's documentation. References are at the bottom of this document.
 
-Knock, knock! Who's there? Python virtual environments courtesy of pyenv. (sorry, really, please don't leave)
+Finally, this is not the only way to accomplish our objective. You can use Ansible Navigator with containerized versions of Ansible. The libraries and Python version is guaranteed to match and it will be self contained. The downside is that there aren't usually official Ansible containers that have a pre-built version 2.12. I don't love relying on community built containers for this purpose, especially when our alternative is so clear. The steps are a little complex, but by the third time you do this the hardest part will be waiting for the building and installing of Python and Ansible.
 
-We are going to cover installing pyenv, Python virtual environment support, matching our target version of Ansible to the correct version of Python, then getting them all to work together.
-
-The solution for my friend uses pyenv to setup the correct virtual version of Python 3, then uses that version of Python to install the correct version of Ansible that will talk to the antiquated RH6 servers. It's important to use the right combination of versions of Python and Ansible together. We will cover exactly how to do that based on Ansible's documentation. References are at the bottom of this document.
-
-Finally, this is not the only way to accomplish our objective. You can use Ansible Navigator with containerized versions of Ansible. The libraries and Python version is guaranteed to match and it will be self contained. The downside is that there's no official Ansible container that has a pre-built version 2.12 for my friend. His choices are to either trust a community built container or build his own, neither of which appeal to me.
-
-So let's get started with my chosen way to accomplish our goal. The steps are a little complex, but by the third time you do this the hardest part will be waiting for the building and installing of Python and Ansible.
-
-The last item we'll cover is getting a new version of Linux to talk to an antique system with SSH. Some of the hashing, key exchange, and encryption algorithms that RH6 and other oldies use are no longer considered safe. That means they are disabled by default in new distros. You can test this yourself by trying to ssh from your shiny new system to your dusty old systems. There are some easy enough tweaks to get your connections working. Since Ansible uses SSH by default we'll have to work on this too.
-
-By following the steps below we got my friend's Ansible controller talking to the RH6 servers. They are now managed just like the newer systems. All he has to do is switch to a different virtual environment. It's easy. Tell pyenv to use the necessary versoin of Python then activate the correct Python virtual environment.
+The last item we'll cover is getting a new version of Linux to talk to an antique system with SSH. Some of the hashing, key exchange, and encryption algorithms that RH6 and other obsolete OSes use are no longer considered safe. That means they are disabled by default in new distros. You can test this yourself by trying to ssh from your shiny new system to your dusty old systems. There are some easy enough tweaks to get your connections working. Since Ansible uses SSH by default we'll have to work on this too.
 
 ## How To - Step By Step
 We'll just dig right in and break this into smaller steps that will actually be pretty easy to do. Be sure to follow the steps carefully. There are a few potential gotchas along the way.
 
-First, let's take care of this nasty little business. Do not use root to run Ansible. Create an account for your controller node to use. It may be the same account or a different account than you use on your inventory systems. Only use the *become* directive when absolutely necessary and let sudo do your privelege elevation. It's outside the scope of this document, but if you're not sure how to get started with a key based, non-root deployment please reach out to me. I'll help you get jump started. I die a little inside every time I find a sloppy, root only deployment. It's poor security hygiene, untrackable through logs, and just undisciplined. Apologies, lecture is over, but I think this is really important.
+First, let's take care of this nasty little business. **Do not use root to run Ansible**. Create a unique account for your controller node to use. It may be the same account or a different account than you use on your inventory systems. Only use the *become* directive when absolutely necessary and let sudo do your privilege elevation. It's outside the scope of this document, but if you're not sure how to get started with a key based, non-root deployment please reach out to me. I'll help you get jump started. I die a little inside every time I find a sloppy, root only deployment. It's poor security hygiene, untrackable through logs, and just undisciplined. Apologies for the lecture, but I think this is really important.
 
 Our prequisites:
+- BASH is our default shell except for Mac
+- we need sudo installed and functional (this is the default for most, but not all distros)
 - your controller system needs to have curl installed, it's probably already there but I don't want any surprises later
 - create a user account on your controller node - I use the username `anscontrol` and set a nicely complex password, you'll need a home directory too
 - generate fresh ssh keys, if you are talking to old servers then it's easiest to stick with rsa, keep the key size to 2048, and hash to SHA-256
-- log into that account - you will only need root or sudo priveleges to install the development tools, everything else only uses simple user permissions
+- log into that account - you will only need root or sudo privileges to install the development tools, everything else only uses simple user permissions
 
 ### pyenv Installation
 Pyenv may be new to you but it's very common among Python developers. There are other ways to switch versions of Python, but I think this is easiest. Even better, it just works.
 
 And now an admission. You can try to get your old versions of Ansible to run with whatever Python 3 is installed on your system. I did get Ansible Core 2.12 to work with Python 3.12. That said, I really think it's a better practice to match your necessary Ansible version to the target version of Python. This is especially true if you're supporting multiple environments or even multiple clients. Pyenv works really well and persists when rebooting. It is my best practice.
 
-I'm using a BASH shell and it's running on a fully patched Red Hat 9.5 system. As long as your system is reasonably up to date and you're using a BASH shell, this is going to go great. Note that you may have slightly different commands and names to get the development tools install. These instructions are geared towards Red Hat/Rocky/Fedora with YUM or DNF. Look at the reference link at the bottom to find specific install instructions for or other distros.
+I'm using a BASH shell and it's running on a fully patched Red Hat 9.5 system. As long as your system is reasonably up to date and you're using a BASH shell, this is going to go great. Note that you may have slightly different commands and names to get the development tools install.
 
 Now we work:
 Open a terminal on your control node and login.
 
-Install development tools so that the Python installs will build correctly. **This step requires sudo or root privileges.** It's the last time we'll need root/sudo.  
-Red Hat/Fedora variant (shown below)  
-`sudo dnf install gcc zlib-devel bzip2 bzip2-devel readline-devel sqlite sqlite-devel openssl-devel xz xz-devel libffi-devel patch git`  
+Install development tools so that the Python installs will build correctly. **This step requires sudo or root privileges.** It's the last time we'll need root/sudo.
+
+Choose your variant:  
+Red Hat/Rocky/Alma versions 8 through 10 variant (image shown below)  
+`sudo dnf install gcc zlib-devel bzip2 bzip2-devel readline-devel sqlite sqlite-devel openssl-devel xz xz-devel libffi-devel patch git`
+
 Ubuntu/Debian variant  
-`sudo apt install make build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev patch git`  
+`sudo apt install make build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev patch git`
+
 SUSE variant  
-`sudo zypper install gcc make readline-devel sqlite3-devel libbz2-devel zlib-devel libopenssl-devel libffi-devel xz-devel patch git`  
+`sudo zypper install gcc make readline-devel sqlite3-devel libbz2-devel zlib-devel libopenssl-devel libffi-devel xz-devel patch git`
+
+FreeBSD variant (assumes sudo is installed and configured, using BASH shell - not sh, and install rust too)  
+`sudo pkg install openssl gmake sqlite3 readline ncurses rust git`
+
+MacOS 14 and newer variant Homebrew hybrid - this needs more steps
+- either do this from and admin account or use sudo `sudo xcode-select --install`
+- install Homebrew `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
+- `brew install xz`
+- after pyenv install below make this tweak for zsh shell - change line in copy and paste text to `eval "$(pyenv init - zsh)"`  
 
 ![install build toosl](InstallSpecificVersionsOfAnsibleWithVirtualEnvironments-images/install-build-tools.jpg)
 
-And yes, I already had mine installed. This at least shows that all the package names are correct for RH9. It's probably right RH8 and RH7.
+And yes, I already had mine installed. These are the correct packages for RH8 through RH10.
 
 Now we just run the command to install pyenv. They make this really easy. We use curl to download their installer script and pipe it to BASH. If you want to be a bit nerdy then you can download the script and look it over. You'll find that it just pulls another script and runs that. Have fun, but for now we'll just get the job done.  
 `curl https://pyenv.run | bash`
@@ -214,7 +219,7 @@ This is what it looks like when I ping all my Unix and Linux hosts in my lab:
 
 And take note of the one host that's warning us about using a deprecated version of Python 2. That's why we did this, so that we can access and automate my friends legacy RH6 servers. My friend is really bummed out though. He found a Red Hat 5 server running in production. That one is so old that it's just out of reach. But seriously, who still has RH5 in production? (Supposedly Ansible 2.3 with Python 2.6 would work. But, seriously?)
 
-#### Summary For The Impatient (Like Me)
+#### Summary For The Impatient (Like Me) - assumes Red Hat 8 through 10, see notes above for other OS variants
 - `sudo dnf install gcc zlib-devel bzip2 bzip2-devel readline-devel sqlite sqlite-devel openssl-devel xz xz-devel libffi-devel patch git`
 - `curl https://pyenv.run | bash`
 - Paste the shell tweaks to the end of your .bash_profile file then restart your shell. Don't just source or . the .bashrc.
