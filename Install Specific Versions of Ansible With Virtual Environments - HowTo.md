@@ -73,10 +73,15 @@ SUSE variant
 FreeBSD variant (assumes sudo is installed and configured, using BASH shell - not sh, and install rust too)  
 `sudo pkg install openssl gmake sqlite3 readline ncurses rust git`
 
-MacOS 14 and newer variant Homebrew hybrid - this needs more steps
+MacOS 14 and newer variant Homebrew hybrid - this takes more steps than other OSes
 - either do this from and admin account or use sudo `sudo xcode-select --install`
 - install Homebrew `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
-- `brew install xz`
+- we need xz, rust, and a modern ssl `brew install xz openssl@3`
+- - Apple silicon `echo 'export PATH="/opt/homebrew/opt/openssl@3/bin:$PATH"' >> ~/.zshrc`
+- - Intel silicon `echo 'export PATH="/usr/local/opt/openssl@3/bin:$PATH"' >> ~/.zshrc`
+- install rust via rustup `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`
+- - `echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> ~/.zshrc`
+- It is possible to install pyenv with Homebrew but I'm sticking with the common method listed below.
 - after pyenv install below make this tweak for zsh shell - change line in copy and paste text to `eval "$(pyenv init - zsh)"`  
 
 ![install build toosl](InstallSpecificVersionsOfAnsibleWithVirtualEnvironments-images/install-build-tools.jpg)
