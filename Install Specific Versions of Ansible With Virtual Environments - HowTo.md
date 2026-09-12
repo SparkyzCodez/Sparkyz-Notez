@@ -1,6 +1,6 @@
 **[Install Specific Versions of Ansible With Virtual Environments - HowTo.md](Install%20Specific%20Versions%20of%20Ansible%20With%20Virtual%20Environments%20-%20HowTo.md)**
 
-last edit: 20260909
+last edit: 20260912
 
 #### Things we are covering
 - setup an Ansible environment that can work with legacy systems or version specific testing
@@ -38,7 +38,10 @@ The last item we'll cover is getting a new version of Linux to talk to an antiqu
 ## How To - Step By Step
 We'll just dig right in and break this into smaller steps that will actually be pretty easy to do. Be sure to follow the steps carefully. There are a few potential gotchas along the way.
 
-First, let's take care of this nasty little business. **Do not use root to run Ansible**. Create a unique account for your controller node to use. It may be the same account or a different account than you use on your inventory systems. Only use the *become* directive when absolutely necessary and let sudo do your privilege elevation. It's outside the scope of this document, but if you're not sure how to get started with a key based, non-root deployment please reach out to me. I'll help you get jump started. I die a little inside every time I find a sloppy, root only deployment. It's poor security hygiene, untrackable through logs, and just undisciplined. Apologies for the lecture, but I think this is really important.
+First, let's take care of this nasty little business:  
+**Do not use root to run Ansible**.
+
+Create a unique account for your controller node to use. It may be the same account or a different account than you use on your inventory systems. Only use the *become* directive when absolutely necessary and let sudo do your privilege elevation. It's outside the scope of this document, but if you're not sure how to get started with a key based, non-root deployment please reach out to me. I'll help you get jump started. I die a little inside every time I find a sloppy, root only deployment. It's poor security hygiene, untrackable through logs, and just undisciplined. Apologies for the lecture, but I think this is really important.
 
 Our prequisites:
 - BASH is our default shell except for Mac
@@ -54,6 +57,9 @@ Pyenv may be new to you but it's very common among Python developers. There are 
 And now an admission. You can try to get your old versions of Ansible to run with whatever Python 3 is installed on your system. I did get Ansible Core 2.12 to work with Python 3.12. That said, I really think it's a better practice to match your necessary Ansible version to the target version of Python. This is especially true if you're supporting multiple environments or even multiple clients. Pyenv works really well and persists when rebooting. It is my best practice.
 
 I'm using a BASH shell and it's running on a fully patched Red Hat 9.5 system. As long as your system is reasonably up to date and you're using a BASH shell, this is going to go great. Note that you may have slightly different commands and names to get the development tools install.
+
+**rust - a quick note:**  
+In the future you may need to install rust in addition to gcc. Use your distro main repo or rustup. It's already required for FreeBSD and Mac. rustup is probably the best way to install rust for most environments. For Mac, use rustup and not Homebrew to install it.
 
 Now we work:
 Open a terminal on your control node and login.
@@ -81,8 +87,8 @@ MacOS 14 and newer variant Homebrew hybrid - this takes more steps than other OS
 - - Intel silicon `echo 'export PATH="/usr/local/opt/openssl@3/bin:$PATH"' >> ~/.zshrc`
 - install rust via rustup `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`
 - - `echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> ~/.zshrc`
-- It is possible to install pyenv with Homebrew but I'm sticking with the common method listed below.
-- after pyenv install below make this tweak for zsh shell - change line in copy and paste text to `eval "$(pyenv init - zsh)"`  
+- It is possible to install pyenv with Homebrew but I'm sticking with the common method. Works with zsh as well. `curl https://pyenv.run | zsh`
+- after pyenv install below make this tweak for zsh shell - change line in recommended copy and paste text to `eval "$(pyenv init - zsh)"`  
 
 ![install build toosl](InstallSpecificVersionsOfAnsibleWithVirtualEnvironments-images/install-build-tools.jpg)
 
@@ -157,7 +163,10 @@ The asterisk is now where we want it. Confirm this by executing:
 ### Ansible Virtual Environment and Setup
 I think you'll be surprised how easy this step is. There are only two commands, so you can just do them now and read later. But, the details are important to understand at some point. Ready?
 
-The first thing to understand is that you must set your Python version with Pyenv before you create your virtual environment (venv). Part of the venv process is to create symlinks to whatever your current Python version. It sounds rigid but that is what we want. It sets up a reproducible environment. I ran `pyenv global 3.10.16` before proceeding.
+Important note:  
+**You must set your Python version with Pyenv before you create your virtual environment (venv).**
+
+Once you create your virtual environment you cannot change the python version. Part of the venv process is to create hard links to your current Python version. It sounds rigid but that is what we want. It sets up a reproducible environment. I ran `pyenv global 3.10.16` before proceeding.
 
 Another thing to understand is that this will create a subdirectory in whatever your current working directory is. I prefer to run this in my home directory and let my subdirectory get created therein.
 
@@ -222,7 +231,7 @@ As root I ran this `update-crypto-policies --set DEFAULT:SHA1` and then rebooted
 This is what it looks like when I ping all my Unix and Linux hosts in my lab:
 ![It Works!](InstallSpecificVersionsOfAnsibleWithVirtualEnvironments-images/it-works.jpg)
 
-And take note of the one host that's warning us about using a deprecated version of Python 2. That's why we did this, so that we can access and automate my friends legacy RH6 servers. My friend is really bummed out though. He found a Red Hat 5 server running in production. That one is so old that it's just out of reach. But seriously, who still has RH5 in production? (Supposedly Ansible 2.3 with Python 2.6 would work. But, seriously?)
+And take note of the one host that's warning us about using a deprecated version of Python 2. That's why we did this, so that we can access and automate legacy RH6 servers.
 
 #### Summary For The Impatient (Like Me) - assumes Red Hat 8 through 10, see notes above for other OS variants
 - `sudo dnf install gcc zlib-devel bzip2 bzip2-devel readline-devel sqlite sqlite-devel openssl-devel xz xz-devel libffi-devel patch git`
@@ -230,14 +239,20 @@ And take note of the one host that's warning us about using a deprecated version
 - Paste the shell tweaks to the end of your .bash_profile file then restart your shell. Don't just source or . the .bashrc.
 - `pyenv install 3.10.16`
 - `pyenv global 3.10.16`
+  - optional - `pip install --upgrade pip`
+  - optional - `pip install wheel`
 - `python -m venv ans2.12`
 - `source ans2.12/bin/activate`
+  - optional, yes do it again - `pip install --upgrade pip`
+  - optional, yes do it again - `pip install wheel`
 - `pip install ansible==5.10.0` (wrong syntax? pip has changed its syntax several times over the years. See the pip reference link just below.)
 
 And that's it. I hope you found this useful.
 
 #### references
 [Intro to Pyenv](https://realpython.com/intro-to-pyenv/)  
+[Ansible Core Support Matrix - https://docs.ansible.com/ansible/latest/reference_appendices/release_and_maintenance.html#ansible-core-support-matrix)](https://docs.ansible.com/ansible/latest/reference_appendices/release_and_maintenance.html#ansible-core-support-matrix)  
+[Ansible Community Version Matrix - https://docs.ansible.com/ansible/latest/reference_appendices/release_and_maintenance.html#ansible-community-changelogs](https://docs.ansible.com/ansible/latest/reference_appendices/release_and_maintenance.html#ansible-community-changelogs)  
 [Various version dependant pip search options](https://stackoverflow.com/questions/4888027/how-to-list-all-available-package-versions-with-pip)
 [Ansible Config File Locations](https://docs.ansible.com/ansible/latest/reference_appendices/config.html)  
 [SSH Connections To Legacy Systems](https://access.redhat.com/solutions/7012231)  
