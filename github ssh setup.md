@@ -1,6 +1,8 @@
 github ssh setup.md
 
-A quick note: I'm switching between my three lab servers in the examples below. The are lab97 (FreeBSD), lab98 (MacOS), and lab99 (Linux). Be sure to adapt the examples to your system.
+A few quick notes:
+- I'm switching between my three lab servers in the examples below. The are lab97 (FreeBSD), lab98 (MacOS), and lab99 (Linux). Be sure to adapt the examples to your system.
+- git@github.com:SparkyzCodez/Sparkyz-Notez.git is my public repository with these and many other notes that I share with everyone. https://github.com/SparkyzCodez/Sparkyz-Notez
 
 ## Github SSH Key Persistent Connectivity
 
@@ -16,6 +18,9 @@ Let's make some ssh keys. This works on Linux, MacOS, and FreeBSD. I'm sure it w
 `ssh-keygen -t ed25519 -f ~/.ssh/git-SparkyzCodez_lab98`
 
 I don't like to use default names for the keys because I tend to have a lot of them. Use a descriptive name and save your self some grief.
+
+Here's a more flexible and automation friendly version that you can run on every one of your hosts and still get a unique key name:
+`ssh-keygen -t ed25519 -f ~/.ssh/git-SparkyzCodez_$(hostname -s)`
 
 I am not using a password with my keys. I'm satisfied with the security. If you do use passwords then you will need to modify some of the steps below to accomodate them.
 
@@ -50,8 +55,11 @@ You may need to login again or use your MFA to prove it's really you. This is se
 Test from your workstation like this. We'll specificy the exact key to use so your local ssh service doesn't need additional configuration yet.  
 `ssh -i ~/.ssh/git-SparkyzCodez_lab98 -T git@github.com`
 
--i is the path to your private key
+-i is the path to your private key  
 -T Disable pseudo-terminal allocation
+
+And an automation friendly version again:
+`ssh -i ~/.ssh/git-SparkyzCodez_$(hostname -s) -T git@github.com`
 
 This is a pass/fail test. If it fails then keep working on your keys until you get them right before proceeding.
 
@@ -62,7 +70,7 @@ We have a number of different methods we could use. The two most common are addi
 
 On the other hand, configuring git to use the correct key keeps the configuration for git localized to git and no other applications. Limiting scope and keeping configuration items in one place is always a good idea.
 
-Your system ssh, such as the .ssh/config file setup we used above, has the lowest precedence. The other methods listed below are in order of precedence, lower to higher. Each high precedence method will override the previous lower precedence method. You may use then all together.
+Your system ssh, such as the .ssh/config file setup we used above, has the lowest precedence. The other methods listed below are in order of precedence, lower to higher. Each higher precedence method will override the previous lower precedence method. You may use then all together.
 
 #### System-wide SSH Service Method
 
@@ -119,10 +127,16 @@ You may not want a global configuration or you may want different keys for speci
 Doing this takes two steps. First you need a repository. You may init a new repository or clone an existing one first. We'll focus on cloning while specifying the correct key to do so.
 `git clone -c core.sshCommand="ssh -i ~/.ssh/git-SparkyzCodez_lab97" git@github.com:SparkyzCodez/Sparkyz-Notez.git`
 
+or
+`git clone -c core.sshCommand="ssh -i ~/.ssh/git-SparkyzCodez_$(hostname -s)" git@github.com:SparkyzCodez/Sparkyz-Notez.git`
+
 Now cd into the repository you just cloned/created and add the ssh key to its configuration.
 `git config core.sshCommand "ssh -i ~/.ssh/git-SparkyzCodez_lab97 -F /dev/null"`
 
--i specifies the key to use
+or
+`git config core.sshCommand "ssh -i ~/.ssh/git-SparkyzCodez_$(hostname -s) -F /dev/null"`
+
+-i specifies the key to use  
 -F /dev/null tells the command to ignore the ~/.ssh/config file
 
 #### Git Environment Variable

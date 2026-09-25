@@ -1,6 +1,6 @@
 **[Install Specific Versions of Ansible With Virtual Environments - HowTo.md](Install%20Specific%20Versions%20of%20Ansible%20With%20Virtual%20Environments%20-%20HowTo.md)**
 
-last edit: 20260912
+last edit: 20260924
 
 #### Things we are covering
 - setup an Ansible environment that can work with legacy systems or version specific testing
@@ -68,27 +68,33 @@ Install development tools so that the Python installs will build correctly. **Th
 
 Choose your variant:  
 Red Hat/Rocky/Alma versions 8 through 10 variant (image shown below)  
-`sudo dnf install gcc zlib-devel bzip2 bzip2-devel readline-devel sqlite sqlite-devel openssl-devel xz xz-devel libffi-devel patch git`
+`sudo dnf install gcc zlib-devel bzip2 bzip2-devel readline-devel sqlite sqlite-devel openssl-devel xz xz-devel libffi-devel patch git sshpass`
 
 Ubuntu/Debian variant  
-`sudo apt install make build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev patch git`
+`sudo apt install make build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev patch git sshpass`
 
 SUSE variant  
-`sudo zypper install gcc make readline-devel sqlite3-devel libbz2-devel zlib-devel libopenssl-devel libffi-devel xz-devel patch git`
+`sudo zypper install gcc make readline-devel sqlite3-devel libbz2-devel zlib-devel libopenssl-devel libffi-devel xz-devel patch git sshpass`
 
-FreeBSD variant (assumes sudo is installed and configured, using BASH shell - not sh, and install rust too)  
-`sudo pkg install openssl gmake sqlite3 readline ncurses rust git`
+FreeBSD variant (assumes sudo is installed and configured, using BASH shell - not sh, and install rust too)
+- You need manually install and configure sudo for your Ansible control user before beginning.
+- `sudo pkg install openssl gmake sqlite3 readline ncurses rust git bash sshpass`
+- You should switch your Ansible control user to use bash as the default shell. DO NOT change the default shell for root.
+- - `chsh -s /usr/local/bin/bash`
+- The remaining instructions in this document will now work for you.
 
 MacOS 14 and newer variant Homebrew hybrid - this takes more steps than other OSes
 - either do this from and admin account or use sudo `sudo xcode-select --install`
 - install Homebrew `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
-- we need xz, rust, and a modern ssl `brew install xz openssl@3`
+- we need xz, rust, and a modern ssl `brew install xz openssl@3 sshpass`
 - - Apple silicon `echo 'export PATH="/opt/homebrew/opt/openssl@3/bin:$PATH"' >> ~/.zshrc`
 - - Intel silicon `echo 'export PATH="/usr/local/opt/openssl@3/bin:$PATH"' >> ~/.zshrc`
-- install rust via rustup `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`
-- - `echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> ~/.zshrc`
-- It is possible to install pyenv with Homebrew but I'm sticking with the common method. Works with zsh as well. `curl https://pyenv.run | zsh`
-- after pyenv install below make this tweak for zsh shell - change line in recommended copy and paste text to `eval "$(pyenv init - zsh)"`  
+- install rust via rustup `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | zsh`
+- - The path will be added to a .zshenv file that is sourced from your .profile file. Close and restart your shell, then verify.
+- It is possible to install pyenv with Homebrew but I'm sticking with the common method. Works with zsh as well.
+- - `curl https://pyenv.run | zsh`
+- after pyenv install below make this tweak for zsh shell - change the line in the recommended copy and paste text to
+- - `eval "$(pyenv init - zsh)"`  
 
 ![install build toosl](InstallSpecificVersionsOfAnsibleWithVirtualEnvironments-images/install-build-tools.jpg)
 
@@ -102,7 +108,7 @@ Now we just run the command to install pyenv. They make this really easy. We use
 That's pretty easy right? Now we have to deal with this warning.  
 ![pyenv shell warning](InstallSpecificVersionsOfAnsibleWithVirtualEnvironments-images/pyenv-shell-tweak.jpg)
 
-Copy and paste the text from that warning into the appropriate file. For most of us we add it to the end of our .bash_profile. Mine looks like this:  
+Copy and paste the text from that warning into the appropriate file. For most of us we add it to the end of our .bash_profile or .bashrc. Mine looks like this:  
 ![.bash_profile after tweak](InstallSpecificVersionsOfAnsibleWithVirtualEnvironments-images/bash-profile.jpg)
 
 Here's our first important gotcha. Don't just source or exec the shell. Close it the shell or session completely, then restart it. If you're running in a GUI just log out completely. If the tweaks to your .bash_profile aren't working then nothing else from here on will work correctly. Yes, this got me once.
@@ -128,8 +134,13 @@ Look at that table, the one with Ansible Core versions and community package rel
 This is the complicated step and we just finished. Let's start installing stuff.
 
 ### Install Python 3.10.16
-Go back to your shell and run this command again.  
+Go back to your shell and rerun the pyenv listing of available versions.
+
+This is a simple listing:  
 `pyenv install -l`
+
+This listing will focus on just the standard Python 3 versions:  
+`pyenv install --list | grep -E '^[ ]+3'`
 
 You will find that version 3.10.16 (near the top of the list) is the final 3.10.x release. Run this command. Be patient.
 `pyenv install 3.10.16`
@@ -234,18 +245,21 @@ This is what it looks like when I ping all my Unix and Linux hosts in my lab:
 And take note of the one host that's warning us about using a deprecated version of Python 2. That's why we did this, so that we can access and automate legacy RH6 servers.
 
 #### Summary For The Impatient (Like Me) - assumes Red Hat 8 through 10, see notes above for other OS variants
-- `sudo dnf install gcc zlib-devel bzip2 bzip2-devel readline-devel sqlite sqlite-devel openssl-devel xz xz-devel libffi-devel patch git`
+- `sudo dnf install gcc zlib-devel bzip2 bzip2-devel readline-devel sqlite sqlite-devel openssl-devel xz xz-devel libffi-devel patch git sshpass`
 - `curl https://pyenv.run | bash`
-- Paste the shell tweaks to the end of your .bash_profile file then restart your shell. Don't just source or . the .bashrc.
+- Paste the shell tweaks to the end of your .bash_profile file then restart your shell.
 - `pyenv install 3.10.16`
+  - `pyenv install --list` to show all available versions
 - `pyenv global 3.10.16`
-  - optional - `pip install --upgrade pip`
-  - optional - `pip install wheel`
+  - optional - `pip install --upgrade pip wheel`
 - `python -m venv ans2.12`
 - `source ans2.12/bin/activate`
-  - optional, yes do it again - `pip install --upgrade pip`
-  - optional, yes do it again - `pip install wheel`
+  - optional - `pip install --upgrade pip wheel`
 - `pip install ansible==5.10.0` (wrong syntax? pip has changed its syntax several times over the years. See the pip reference link just below.)
+  - `pip index versions ansible` to search with newer pip versions, see above for older versions
+  - Ansible 2.12 (community version 5) with Pyton 3.10 will work with hosts using Python 2.6 and up (RH6)
+  - Ansible 2.16 (community version 9) with Pyton 3.12 will work with hosts using Python3 3.6 and up (RH7,RH8,SUSE15)
+  - Ansible 2.21 (community version 14) with Pyton 3.14 is the latest as of this writing (RH9 and up, SUSE 16 and up, Ubuntu 20 and up)
 
 And that's it. I hope you found this useful.
 
