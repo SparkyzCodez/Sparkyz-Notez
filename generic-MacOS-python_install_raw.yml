@@ -1,0 +1,88 @@
+---
+# This is a playbook only for MacOS and only for installing Python with the raw module. I call it a bootstrapping playbook.
+# Really it's just a handy but rough tool to bring a number of Macs into readiness for subsequent Ansible management.
+# Because the Python3 we want is not yet installed we cannot gather facts or pretty much use any module except ansible.builtin.raw.
+# This playbook will install a downloaded Python3 even if the xcode version is installed.
+
+# Usage:
+# First, Ansible won't use a shell path on the managed host. AFTER running this playbook you must specify the python interpreter to override 
+# the systems that already have xcode command line tools installed. I do that in inventory like this. (MAC is my Mac group.)
+    # [MAC:vars]
+    # ansible_python_interpreter=/usr/local/bin/python3
+# Run with an actual root account like this: ansible-playbook -k generic-MacOS-python_install_raw.yml
+    # user root is already specified below
+    # -k is to prompt for the root password, it will not appear in your shell history
+
+
+
+# Notes:
+# This will hard fail on non-Mac systems. It's to let you know that you need to limit your managed host scope for this playbook.
+# Tested on MacOS 14, 15, and 26 on Intel CPUs.
+
+# IDEMPOTENCE STATUS: Not Perfect - We're doing the best we can with shell return values. It should at least do no harm.
+# If we find a symlink at /usr/local/bin/python3 then we're considering Python to have been installed from a python.org package.
+# Xcode command line tool installation does not create that symlink. We will install the downloaded package even if xcode was
+# previously installed.
+
+- name: Mac Python Raw Install
+  hosts: MAC
+  # hosts: MAC,lab12
+  # hosts: lab81
+
+  # We cannot gather facts.
+  gather_facts: false
+
+  # Quick explanation. sparky is my default administrator account on new deployments. It has sudo rights.
+  # This will only work if the NOPASSWD option is set for the user's sudo. Otherwise you'll need to use root.
+  # remote_user: sparky
+  remote_user: root
+
+  vars:
+    # hard code altert! - This is the last Python3 3.10.x available from python.org as a pre-built package.
+    python_curl_url: 'https://www.python.org/ftp/python/3.10.11/python-3.10.11-macos11.pkg'
+    # hard code altert! - We are looking for a non-xcode installed python3.
+    python3_local_install_path: '/usr/local/bin/python3'
+
+  tasks:
+    - name: Verify MacOS
+      # We're going to hard fail if it's not a Mac.
+      # We can't gather facts but we don't want to run on non-Mac systems. The platform attribute on the raw module doesn't
+      # tell use what we need to know.
+      # We are not testing the version number. You can probably make a complex changed_when with string matching. I'm not.
+      ansible.builtin.raw: "sw_vers | grep -E -o 'macOS'"
+      register: macos_test
+      failed_when: macos_test.rc != 0
+      # We only want to know if it fails. We do not need or want a changed status.
+      changed_when: false
+
+    - name: Python Is It Installed III
+      # Note: we are looking for a symlink that the python.org installer creates but the xcode installer does not create.
+      ansible.builtin.raw: "[ -f  {{ python3_local_install_path }} ]"
+      register: python_test3
+      # This is usually a crude practice, but we're working with raw commands AND we are testing for a changed condition.
+      # We need to mask non-zero return values from the test that Ansible would consider a fail.
+      failed_when: false
+      changed_when: python_test3.rc != 0
+      notify: Pull Python Package With Curl Raw
+
+  handlers:
+    - name: Pull Python Package With Curl Raw
+      # Mac curl does not support --skip-existing
+      ansible.builtin.raw: "[ -f {{ python_curl_url | ansible.builtin.basename }} ] || (curl -O {{ python_curl_url }} > /dev/null && echo downloadtrue)"
+        # We don't need this argument this time. The command were passing will work with any sh/bash/zsh/ksh shell.
+        # args:
+        #   executable: /bin/bash
+      register: curl_pull
+      changed_when: '"downloadtrue" in curl_pull.stdout'
+      notify: Download Complete
+
+    - name: Run Mac Installer Against Download Pkg
+      ansible.builtin.raw: "installer -pkg {{ python_curl_url | ansible.builtin.basename }} -target /"
+      listen: Download Complete
+      notify: Cleanup Download
+
+    - name: Cleanup Download
+      ansible.builtin.raw: "rm -f {{ python_curl_url | ansible.builtin.basename }}"
+      listen: Cleanup Download
+
+...
