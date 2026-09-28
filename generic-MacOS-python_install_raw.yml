@@ -9,15 +9,13 @@
 # the systems that already have xcode command line tools installed. I do that in inventory like this. (MAC is my Mac group.)
     # [MAC:vars]
     # ansible_python_interpreter=/usr/local/bin/python3
-# Run with an actual root account like this: ansible-playbook -k generic-MacOS-python_install_raw.yml
-    # user root is already specified below
+# Run like this: ansible-playbook -k generic-MacOS-python_install_raw.yml
+    # user root is already specified below, override as you see fit
     # -k is to prompt for the root password, it will not appear in your shell history
-
-
 
 # Notes:
 # This will hard fail on non-Mac systems. It's to let you know that you need to limit your managed host scope for this playbook.
-# Tested on MacOS 14, 15, and 26 on Intel CPUs.
+# Tested on MacOS 14, 15, and 26 on Intel CPUs. The installer is a universal installer so Apple silicon should be fine.
 
 # IDEMPOTENCE STATUS: Not Perfect - We're doing the best we can with shell return values. It should at least do no harm.
 # If we find a symlink at /usr/local/bin/python3 then we're considering Python to have been installed from a python.org package.
@@ -29,7 +27,7 @@
   # hosts: MAC,lab12
   # hosts: lab81
 
-  # We cannot gather facts.
+  # We cannot gather facts without Python.
   gather_facts: false
 
   # Quick explanation. sparky is my default administrator account on new deployments. It has sudo rights.
@@ -67,7 +65,7 @@
 
   handlers:
     - name: Pull Python Package With Curl Raw
-      # Mac curl does not support --skip-existing
+      # Mac curl does not support --skip-existing. We'll do this the hard way.
       ansible.builtin.raw: "[ -f {{ python_curl_url | ansible.builtin.basename }} ] || (curl -O {{ python_curl_url }} > /dev/null && echo downloadtrue)"
         # We don't need this argument this time. The command were passing will work with any sh/bash/zsh/ksh shell.
         # args:
@@ -84,5 +82,4 @@
     - name: Cleanup Download
       ansible.builtin.raw: "rm -f {{ python_curl_url | ansible.builtin.basename }}"
       listen: Cleanup Download
-
 ...

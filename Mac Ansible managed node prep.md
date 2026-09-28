@@ -140,3 +140,8 @@ lab83 | SUCCESS => {"ansible_facts": {"discovered_interpreter_python": "/usr/bin
 In that scenario I used Ansible 2.12 running on Python 3.10.21 against a MacOS 26 system running Python 3.10.11. It's a very old Ansible working with a very new MacOS running an older version of Python. You can mix and match however you need it.
 
 I hope this was helpful.
+
+## Did you make it to the end? Here's a bonus. Find my **generic-MacOS-python_install_raw.yml** playbook https://github.com/SparkyzCodez/Sparkyz-Notez . It will install Python3 to all your Macs at the same time. It does not need Python because it uses the ansible.builtin.raw module. It's well documented and should answer all your questions.
+
+Cheers,
+Sparky
